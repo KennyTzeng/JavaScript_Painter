@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>小畫家</title>
+        <style>
+            p, label{
+                margin: 1px;
+                position: absolute;
+                font-family: "Microsoft JhengHei"
+            }
+            input, button{
+                position: absolute;
+            }
+            canvas{
+                cursor: url("images/pencil-cursor-level1.png"),auto;
+            }
+            div{
+                width: 300px;
+                border: 1px solid black;
+                position: absolute;
+            }
+            #div1{
+                height: 200px;
+                top: 10px;
+                left: 1220px;
+            }
+            #div2{
+                height: 120px;
+                top: 220px;
+                left: 1220px;
+                border: 3px solid black;
+            }
+            #div3{
+                height: 120px;
+                top: 355px;
+                left: 1220px;
+            }
+        </style>
+        <script>
+            var isPress = false;
+            var lastlw = 1; //記錄畫筆粗細當錯誤輸入時修正
+            var lastEraSize = 3; //記錄橡皮擦Size
+            var locX;
+            var locY;
+            var tool = 1;
+
+            function setLoc(){
+                if(tool == 1){
+                    if(screen.width>=1920){
+                        if(lastlw<=5){
+                            locX = event.pageX+1;
+                            locY = event.pageY+19;
+                        }else if(lastlw<=10){
+                            locX = event.pageX+4;
+                            locY = event.pageY+29;
+                        }else if(lastlw<=15){
+                            locX = event.pageX+7;
+                            locY = event.pageY+37;
+                        }else{
+                            locX = event.pageX+9;
+                            locY = event.pageY+45;
+                        }
+                    }else{
+                        if(lastlw<=5){
+                            locX = event.pageX;
+                            locY = event.pageY+14;
+                        }else if(lastlw<=10){
+                            locX = event.pageX+3;
+                            locY = event.pageY+22;
+                        }else if(lastlw<=15){
+                            locX = event.pageX+6;
+                            locY = event.pageY+30;
+                        }else{
+                            locX = event.pageX+9;
+                            locY = event.pageY+35;
+                        }
+                    }
+                }else if(tool == 2){
+                    if(screen.width>=1920){
+                        if(lastEraSize == 3){
+                            locX = event.pageX-2;
+                            locY = event.pageY+9;
+                        }else if(lastEraSize == 7){
+                            locX = event.pageX+2;
+                            locY = event.pageY+16;
+                        }else{
+                            locX = event.pageX+2;
+                            locY = event.pageY+23;
+                        }
+                    }else{
+                        if(lastEraSize == 3){
+                            locX = event.pageX-1;
+                            locY = event.pageY+4;
+                        }else if(lastEraSize == 7){
+                            locX = event.pageX-1;
+                            locY = event.pageY+9;
+                        }else{
+                            locX = event.pageX-1;
+                            locY = event.pageY+15;
+                        }
+                    }
+                }
+            }
+            function mouseMove(){
+                if(isPress){
+                    setLoc();
+                    ctx.lineTo(locX,locY);
+                    ctx.stroke();
+                }
+            }
+            function mouseUp(){
+                isPress = false;
+            }
+            function mouseDown(){
+                isPress = true;
+                setLoc();
+                event.preventDefault();
+                ctx.beginPath();
+                ctx.moveTo(locX,locY);
+            }
+            function mouseOver(){
+                isPress = false;
+            }
+            function mouseOut(){
+                isPress = false;
+            }
+            function draw(){
+                tool = 1;
+                document.getElementById("div2").style = "border:3px solid black";
+                document.getElementById("div3").style = "border:1px solid black";
+                ctx.lineWidth = lastlw;
+                ctx.strokeStyle = document.getElementsByTagName("input")[1].value;
+                if(lastlw <=5){
+                    document.getElementById("myCanvas").style.cursor = "url('images/pencil-cursor-level1.png'),auto";
+                }else if(lastlw <=10){
+                    document.getElementById("myCanvas").style.cursor = "url('images/pencil-cursor-level2.png'),auto";
+                }else if(lastlw <=15){
+                    document.getElementById("myCanvas").style.cursor = "url('images/pencil-cursor-level3.png'),auto";
+                }else{
+                    document.getElementById("myCanvas").style.cursor = "url('images/pencil.png'),auto";
+                }
+            }
+            function erase(){
+                tool = 2;
+                document.getElementById("div2").style = "border:1px solid black";
+                document.getElementById("div3").style = "border:3px solid black";
+                ctx.lineWidth = lastEraSize;
+                ctx.strokeStyle = "#FFFFFF";
+                if(lastEraSize == 3){
+                    document.getElementById("myCanvas").style.cursor = "url('images/eraser-cursor-small.png'),auto";
+                }else if(lastEraSize == 7){
+                    document.getElementById("myCanvas").style.cursor = "url('images/eraser-cursor-medium.png'),auto";
+                }else{
+                    document.getElementById("myCanvas").style.cursor = "url('images/eraser-cursor-large.png'),auto";
+                }
+            }
+            function clearCanvas(){
+                ctx.clearRect(0,0,1200,700);
+                draw();
+            }
+            function savePainting(){
+                var url = document.getElementById("myCanvas").toDataURL();
+                document.getElementById("save").href = url;
+                window.open(url);
+            }
+            function setLineWidth(){
+                var lw = document.getElementsByTagName("input")[0].value;
+
+                if(lw > 20 || lw < 1){
+                    document.getElementsByTagName("input")[0].value = lastlw;
+                }else{
+                    ctx.lineWidth = lw;
+                    lastlw = lw;
+                    draw();
+                }
+            }
+            function selectColor(){
+                if(tool == 1){
+                    ctx.strokeStyle = document.getElementsByTagName("input")[1].value;
+                }else{
+                    draw();
+                }
+            }
+            function selEraSmall(){
+                ctx.lineWidth=3;
+                lastEraSize=3;
+                erase();
+            }
+            function selEraMedium(){
+                ctx.lineWidth=7;
+                lastEraSize=7;
+                erase();
+            }
+            function selEraLarge(){
+                ctx.lineWidth=12;
+                lastEraSize=12;
+                erase();
+            }
+        </script>
+    </head>
+    <body>
+
+        <canvas id="myCanvas" width="1200px" height="700px" style="border:1px solid black" onmousemove="mouseMove() "onmouseup="mouseUp()" onmousedown="mouseDown()" onmouseover="mouseOver() "onmouseout="mouseOut()"></canvas>
+        <div id="div1"></div>
+        <button style="top:20px;left:1230px;" onclick="draw()"><img src="images/pencil.png"></button>
+        <button style="top:20px;left:1330px;" onclick="erase()"><img src="images/eraser.png"></button>
+        <a id="save" download="Masterpieces.png" onclick="savePainting()"><button style="top:20px;left:1430px;"><img src="images/save.png"></button></a>
+        <button style="top:120px;left:1230px;" onclick="clearCanvas()"><img src="images/clear.png"></button>
+        <div id="div2"></div>
+        <p style="top:240px;left:1240px;">畫筆粗細</p>
+        <input type="number" value="1" min="1" max="20" style="top:245px;left:1340px;" onchange="setLineWidth()">
+        <p style="top:290px;left:1240px;">畫筆顏色</p>
+        <input type="color" style="top:290px;left:1340px;" onchange="selectColor()">
+        <div id="div3"></div>
+        <p style="top:370px;left:1335px;">橡皮擦</p>
+        <input type="radio" name="eraserSize" id="sEraserRadio" style="top:420px;left:1240px;" onclick="selEraSmall()" checked>
+        <label style="top:413px;left:1265px;" for="sEraserRadio">小</label>
+        <input type="radio" name="eraserSize" id="mEraserRadio" style="top:420px;left:1340px;" onclick="selEraMedium()" >
+        <label style="top:413px;left:1365px;" for="mEraserRadio">中</label>
+        <input type="radio" name="eraserSize" id="lEraserRadio" style="top:420px;left:1440px;" onclick="selEraLarge()" >
+        <label style="top:413px;left:1465px;" for="lEraserRadio">大</label>
+        <script>
+            var ctx = document.getElementById("myCanvas").getContext("2d");
+        </script>
+    </body>
+</html>
